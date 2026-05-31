@@ -15,8 +15,41 @@ export const youtubeUrlSchema = z
 export type DownloadType = z.infer<typeof downloadTypeSchema>;
 export type AudioFormat = z.infer<typeof audioFormatSchema>;
 
+function getConfiguredYoutubeCookies() {
+    const base64Cookies = process.env.YOUTUBE_COOKIES_BASE64?.trim();
+    if (base64Cookies) {
+        return Buffer.from(base64Cookies, "base64").toString("utf8").trim();
+    }
+
+    return process.env.YOUTUBE_COOKIES?.trim() || "";
+}
+
+function parseNetscapeCookieHeader(cookies: string) {
+    return cookies
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter((line) => line && !line.startsWith("#"))
+        .map((line) => line.split("\t"))
+        .filter((columns) => columns.length >= 7)
+        .map((columns) => `${columns[5]}=${columns[6]}`)
+        .join("; ");
+}
+
+export function getYoutubeCookieHeader() {
+    const cookies = getConfiguredYoutubeCookies();
+    if (!cookies) {
+        return "";
+    }
+
+    if (cookies.includes("\t") || cookies.includes("# Netscape HTTP Cookie File")) {
+        return parseNetscapeCookieHeader(cookies);
+    }
+
+    return cookies;
+}
+
 export function getYtdlOptions(): ytdl.getInfoOptions {
-    const cookie = process.env.YOUTUBE_COOKIES?.trim();
+    const cookie = getYoutubeCookieHeader();
 
     return {
         lang: "ja",
@@ -100,20 +133,20 @@ export function normalizeYoutubeError(error: unknown) {
     }
 
     if (
-        lowerMessage.includes("unavailable") ||
-        lowerMessage.includes("private video") ||
-        lowerMessage.includes("video unavailable")
-    ) {
-        return "この動画は利用できません。削除、非公開、地域制限、または配信者側の制限を確認してください。";
-    }
-
-    if (
         lowerMessage.includes("sign in") ||
         lowerMessage.includes("confirm") ||
         lowerMessage.includes("bot") ||
         lowerMessage.includes("login")
     ) {
-        return "YouTube からログイン確認または bot 確認を求められました。Vercel の YOUTUBE_COOKIES にブラウザの Cookie を設定してください。";
+        return "YouTube からログイン確認または bot 確認を求められました。Vercel の YOUTUBE_COOKIES または YOUTUBE_COOKIES_BASE64 にブラウザの Cookie を設定してください。";
+    }
+
+    if (
+        lowerMessage.includes("unavailable") ||
+        lowerMessage.includes("private video") ||
+        lowerMessage.includes("video unavailable")
+    ) {
+        return "この動画は利用できません。削除、非公開、地域制限、または配信者側の制限を確認してください。";
     }
 
     if (

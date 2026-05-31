@@ -30,7 +30,8 @@ Vercel の Environment Variables に以下を設定します。
 
 - `BASIC_AUTH_USER`: Basic 認証のユーザー名
 - `BASIC_AUTH_PASSWORD`: Basic 認証のパスワード
-- `YOUTUBE_COOKIES`: 任意。YouTube から bot 確認やログイン要求が出る場合に Cookie ヘッダー値を設定
+- `YOUTUBE_COOKIES`: 任意。YouTube から bot 確認やログイン要求が出る場合に Cookie ヘッダー値、または Netscape 形式の cookies.txt 内容を設定
+- `YOUTUBE_COOKIES_BASE64`: 任意。Netscape 形式の cookies.txt を base64 化して設定。複数行 Cookie を Vercel に入れる場合はこちらを推奨
 
 単体ダウンロードと一括 zip ダウンロードは、Vercel の Serverless Function 上で `yt-dlp` を実行してファイルを返します。大量の URL や長い動画では実行時間制限に達する可能性があります。
 
