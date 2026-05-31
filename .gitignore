@@ -10,3 +10,6 @@ out
 .vercel
 vendor/yt-dlp
 vendor/yt-dlp.exe
+
+# Local YouTube cookie exports
+*cookies*.txt
