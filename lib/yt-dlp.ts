@@ -65,7 +65,7 @@ export function getYtDlpBaseArgs(type: DownloadType, audioFormat: AudioFormat) {
 
     args.push(
         "--js-runtimes",
-        fs.existsSync(denoBinaryPath) ? `deno:${denoBinaryPath},node` : "node,deno"
+        fs.existsSync(denoBinaryPath) ? `deno:${denoBinaryPath}` : "deno,node"
     );
 
     if (type === "audio") {
