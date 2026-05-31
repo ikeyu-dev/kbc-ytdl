@@ -21,6 +21,12 @@ export const ffmpegBinaryPath = path.join(
     process.platform === "win32" ? "ffmpeg.exe" : "ffmpeg"
 );
 
+export const denoBinaryPath = path.join(
+    process.cwd(),
+    "vendor",
+    process.platform === "win32" ? "deno.exe" : "deno"
+);
+
 function getConfiguredCookieFilePath() {
     const base64Cookies = process.env.YOUTUBE_COOKIES_BASE64?.trim();
     if (base64Cookies) {
@@ -53,11 +59,14 @@ export function getYtDlpBaseArgs(type: DownloadType, audioFormat: AudioFormat) {
         "--no-playlist",
         "--no-warnings",
         "--no-progress",
-        "--js-runtimes",
-        "node,deno",
         "--ffmpeg-location",
         ffmpegBinaryPath,
     ];
+
+    args.push(
+        "--js-runtimes",
+        fs.existsSync(denoBinaryPath) ? `deno:${denoBinaryPath},node` : "node,deno"
+    );
 
     if (type === "audio") {
         args.push("--extract-audio", "--audio-format", audioFormat);

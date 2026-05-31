@@ -7,11 +7,15 @@ const nextConfig: NextConfig = {
         "/api/download": [
             "./vendor/yt-dlp",
             "./vendor/yt-dlp.exe",
+            "./vendor/deno",
+            "./vendor/deno.exe",
             "./node_modules/ffmpeg-static/ffmpeg",
         ],
         "/api/bulk-download": [
             "./vendor/yt-dlp",
             "./vendor/yt-dlp.exe",
+            "./vendor/deno",
+            "./vendor/deno.exe",
             "./node_modules/ffmpeg-static/ffmpeg",
         ],
     },

@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3010",
-    "postinstall": "node scripts/install-yt-dlp.mjs",
+    "postinstall": "node scripts/install-yt-dlp.mjs && node scripts/install-deno.mjs",
     "build": "next build",
     "start": "next start",
     "lint": "eslint"

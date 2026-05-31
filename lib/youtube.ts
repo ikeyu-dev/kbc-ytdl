@@ -127,9 +127,10 @@ export function normalizeYoutubeError(error: unknown) {
     if (
         message === "NO_PLAYABLE_FORMATS" ||
         lowerMessage.includes("no playable formats") ||
-        lowerMessage.includes("failed to find any playable formats")
+        lowerMessage.includes("failed to find any playable formats") ||
+        lowerMessage.includes("requested format is not available")
     ) {
-        return "再生可能な形式が見つかりません。この動画は削除・非公開・地域制限・ログイン必須の可能性があります。";
+        return "再生可能な音声・動画形式が見つかりません。Cookie の期限切れ、YouTube の bot 確認、または動画側の制限の可能性があります。";
     }
 
     if (
