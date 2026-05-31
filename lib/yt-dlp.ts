@@ -59,6 +59,8 @@ export function getYtDlpBaseArgs(type: DownloadType, audioFormat: AudioFormat) {
         "--no-playlist",
         "--no-warnings",
         "--no-progress",
+        "--extractor-args",
+        "youtube:player_client=android,ios,tv",
         "--ffmpeg-location",
         ffmpegBinaryPath,
     ];
