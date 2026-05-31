@@ -7,3 +7,4 @@ dist
 out
 *.tsbuildinfo
 *-player-script.js
+.vercel
