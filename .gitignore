@@ -8,3 +8,5 @@ out
 *.tsbuildinfo
 *-player-script.js
 .vercel
+vendor/yt-dlp
+vendor/yt-dlp.exe

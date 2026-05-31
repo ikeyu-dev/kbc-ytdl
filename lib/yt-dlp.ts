@@ -4,9 +4,7 @@ import type { AudioFormat, DownloadType } from "@/lib/youtube";
 
 export const ytDlpBinaryPath = path.join(
     process.cwd(),
-    "node_modules",
-    "youtube-dl-exec",
-    "bin",
+    "vendor",
     process.platform === "win32" ? "yt-dlp.exe" : "yt-dlp"
 );
 
