@@ -1,0 +1,130 @@
+import ytdl from "@distube/ytdl-core";
+import { z } from "zod";
+
+export const downloadTypeSchema = z.enum(["audio", "video"]);
+export const audioFormatSchema = z.enum(["wav", "mp3", "m4a"]);
+
+export const youtubeUrlSchema = z
+    .string()
+    .trim()
+    .url("YouTube の URL を入力してください")
+    .refine((value) => ytdl.validateURL(value), {
+        message: "対応している YouTube URL ではありません",
+    });
+
+export type DownloadType = z.infer<typeof downloadTypeSchema>;
+export type AudioFormat = z.infer<typeof audioFormatSchema>;
+
+export function getYtdlOptions(): ytdl.getInfoOptions {
+    const cookie = process.env.YOUTUBE_COOKIES?.trim();
+
+    return {
+        lang: "ja",
+        playerClients: ["WEB", "WEB_EMBEDDED", "IOS", "ANDROID", "TV"],
+        requestOptions: cookie
+            ? {
+                  headers: {
+                      cookie,
+                  },
+              }
+            : undefined,
+    };
+}
+
+export function chooseDownloadFormat(
+    formats: ytdl.videoFormat[],
+    type: DownloadType,
+) {
+    const candidates: ytdl.chooseFormatOptions[] =
+        type === "audio"
+            ? [
+                  { quality: "highestaudio", filter: "audioonly" },
+                  { quality: "highestaudio", filter: "audio" },
+                  { quality: "highest", filter: "audioandvideo" },
+              ]
+            : [
+                  { quality: "highest", filter: "audioandvideo" },
+                  { quality: "highest", filter: "videoandaudio" },
+                  { quality: "highest", filter: "video" },
+              ];
+    const playableFormats = formats.filter((format) => Boolean(format.url));
+
+    if (playableFormats.length === 0) {
+        throw new Error("NO_PLAYABLE_FORMATS");
+    }
+
+    for (const candidate of candidates) {
+        try {
+            const format = ytdl.chooseFormat(playableFormats, candidate);
+            if (format?.url) {
+                return format;
+            }
+        } catch {
+            // Try the next format group.
+        }
+    }
+
+    throw new Error("NO_PLAYABLE_FORMATS");
+}
+
+export function getFileExtension(format: ytdl.videoFormat) {
+    const mimeType = format.mimeType?.split(";")[0];
+    if (mimeType === "audio/webm" || mimeType === "video/webm") {
+        return "webm";
+    }
+    if (mimeType === "audio/mp4" || mimeType === "video/mp4") {
+        return "mp4";
+    }
+    return format.container || "mp4";
+}
+
+export function toSafeFilename(title: string) {
+    return title
+        .replace(/[\\/:*?"<>|]/g, "_")
+        .replace(/\s+/g, " ")
+        .trim()
+        .slice(0, 120);
+}
+
+export function normalizeYoutubeError(error: unknown) {
+    const message =
+        error instanceof Error ? error.message : "動画情報の取得に失敗しました";
+    const lowerMessage = message.toLowerCase();
+
+    if (
+        message === "NO_PLAYABLE_FORMATS" ||
+        lowerMessage.includes("no playable formats") ||
+        lowerMessage.includes("failed to find any playable formats")
+    ) {
+        return "再生可能な形式が見つかりません。この動画は削除・非公開・地域制限・ログイン必須の可能性があります。";
+    }
+
+    if (
+        lowerMessage.includes("unavailable") ||
+        lowerMessage.includes("private video") ||
+        lowerMessage.includes("video unavailable")
+    ) {
+        return "この動画は利用できません。削除、非公開、地域制限、または配信者側の制限を確認してください。";
+    }
+
+    if (
+        lowerMessage.includes("sign in") ||
+        lowerMessage.includes("confirm") ||
+        lowerMessage.includes("bot") ||
+        lowerMessage.includes("login")
+    ) {
+        return "YouTube からログイン確認または bot 確認を求められました。Vercel の YOUTUBE_COOKIES にブラウザの Cookie を設定してください。";
+    }
+
+    if (
+        lowerMessage.includes("region") ||
+        lowerMessage.includes("country") ||
+        lowerMessage.includes("not made this video available")
+    ) {
+        return "この動画は現在の地域では視聴できません。配信地域の制限を確認してください。";
+    }
+
+    return message;
+}
+
+export { ytdl };

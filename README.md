@@ -1,6 +1,57 @@
 # kbc-ytdl
 
-### 大宮北高校放送部専用 youtube downloader
+### 大宮北高校放送部専用 YouTube downloader
+
+## Vercel アプリ
+
+Next.js / React で実装した、Basic 認証つきの YouTube ダウンローダーです。
+UI は `nb-portal` の Tailwind CSS / daisyUI / Zen Maru Gothic の雰囲気に合わせています。
+
+### ローカル起動
+
+```bash
+npm install
+cp .env.example .env.local
+npm run dev
+```
+
+`.env.local` には最低限以下を設定してください。
+
+```bash
+BASIC_AUTH_USER=kbc
+BASIC_AUTH_PASSWORD=任意の強いパスワード
+```
+
+開発環境では Basic 認証の環境変数が未設定でも起動できます。本番環境では未設定の場合 401 になります。
+
+### Vercel 設定
+
+Vercel の Environment Variables に以下を設定します。
+
+- `BASIC_AUTH_USER`: Basic 認証のユーザー名
+- `BASIC_AUTH_PASSWORD`: Basic 認証のパスワード
+- `YOUTUBE_COOKIES`: 任意。YouTube から bot 確認やログイン要求が出る場合に Cookie ヘッダー値を設定
+
+単体ダウンロードと一括 zip ダウンロードは、Vercel の Serverless Function 上で `yt-dlp` を実行してファイルを返します。大量の URL や長い動画では実行時間制限に達する可能性があります。
+
+### 一括 zip ダウンロード
+
+画面下部の「一括ダウンロード」に、スプレッドシートの URL 列をそのまま貼り付けると、`yt-dlp` で取得して zip にまとめます。
+
+- 改行、空白、カンマ区切りの URL に対応
+- 4 件以上は 4 並列で処理
+- 一部の URL が失敗した場合も成功分は zip に入り、失敗理由は `failed-downloads.txt` に出力
+- Vercel の実行時間制限にかかる場合は、URL を数回に分けて実行してください
+
+### Deno
+
+yt-dlp の JavaScript runtime 警告対策として、ローカルには Deno をインストール済みです。
+
+```bash
+deno --version
+```
+
+Colab notebook 側にも Deno のインストール処理を追加しています。
 
 #### 概要
 
