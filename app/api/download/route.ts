@@ -8,13 +8,16 @@ import { Readable } from "stream";
 import {
     audioFormatSchema,
     downloadTypeSchema,
-    getYtdlOptions,
     normalizeYoutubeError,
     toSafeFilename,
     youtubeUrlSchema,
-    ytdl,
 } from "@/lib/youtube";
-import { getYtDlpBaseArgs, ytDlpBinaryPath } from "@/lib/yt-dlp";
+import {
+    getYtDlpBaseArgs,
+    getYtDlpFilenameTitle,
+    getYtDlpVideoInfo,
+    ytDlpBinaryPath,
+} from "@/lib/yt-dlp";
 
 export const runtime = "nodejs";
 export const dynamic = "force-dynamic";
@@ -134,10 +137,10 @@ export async function GET(request: NextRequest) {
     }
 
     try {
-        const info = await ytdl.getInfo(urlResult.data, getYtdlOptions());
+        const info = await getYtDlpVideoInfo(urlResult.data, typeResult.data);
         const { filePath, filename, tempDir } = await downloadToTempFile({
             audioFormat: audioFormatResult.data,
-            title: info.videoDetails.title,
+            title: getYtDlpFilenameTitle(info),
             type: typeResult.data,
             url: urlResult.data,
         });

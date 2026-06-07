@@ -2,38 +2,38 @@
 
 ### 大宮北高校放送部専用 YouTube downloader
 
-## Vercel アプリ
+## ローカルアプリ
 
-Next.js / React で実装した、Basic 認証つきの YouTube ダウンローダーです。
+Next.js / React で実装した、ローカル実行専用の YouTube ダウンローダーです。
 UI は `nb-portal` の Tailwind CSS / daisyUI / Zen Maru Gothic の雰囲気に合わせています。
 
 ### ローカル起動
 
 ```bash
 npm install
-cp .env.example .env.local
 npm run dev
 ```
 
-`.env.local` には最低限以下を設定してください。
+ブラウザで `http://localhost:3010` を開きます。
+
+YouTube からログイン確認や bot 確認を求められる場合は、ブラウザから Netscape 形式で Cookie を書き出し、プロジェクト直下に `www.youtube.com_cookies.txt` として保存してください。
+
+必要に応じて `.env.local` に Cookie ヘッダー値を直接設定できます。
 
 ```bash
-BASIC_AUTH_USER=kbc
-BASIC_AUTH_PASSWORD=任意の強いパスワード
+YOUTUBE_COOKIES=
 ```
 
-開発環境では Basic 認証の環境変数が未設定でも起動できます。本番環境では未設定の場合 401 になります。
+### Cloudflare Tunnel
 
-### Vercel 設定
+ローカルで起動しているアプリを一時的に共有する場合だけ、Cloudflare Tunnel を使います。
 
-Vercel の Environment Variables に以下を設定します。
+```bash
+npm run dev
+npm run tunnel
+```
 
-- `BASIC_AUTH_USER`: Basic 認証のユーザー名
-- `BASIC_AUTH_PASSWORD`: Basic 認証のパスワード
-- `YOUTUBE_COOKIES`: 任意。YouTube から bot 確認やログイン要求が出る場合に Cookie ヘッダー値、または Netscape 形式の cookies.txt 内容を設定
-- `YOUTUBE_COOKIES_BASE64`: 任意。Netscape 形式の cookies.txt を base64 化して設定。複数行 Cookie を Vercel に入れる場合はこちらを推奨
-
-単体ダウンロードと一括 zip ダウンロードは、Vercel の Serverless Function 上で `yt-dlp` を実行してファイルを返します。大量の URL や長い動画では実行時間制限に達する可能性があります。
+`npm run tunnel` の出力に表示される `https://...trycloudflare.com` を開きます。長時間の一括 zip ダウンロードは Tunnel 経由だと途中で切れることがあるため、基本は `http://localhost:3010` で使います。
 
 ### 一括 zip ダウンロード
 
@@ -42,7 +42,6 @@ Vercel の Environment Variables に以下を設定します。
 - 改行、空白、カンマ区切りの URL に対応
 - 4 件以上は 4 並列で処理
 - 一部の URL が失敗した場合も成功分は zip に入り、失敗理由は `failed-downloads.txt` に出力
-- Vercel の実行時間制限にかかる場合は、URL を数回に分けて実行してください
 
 ### Deno
 

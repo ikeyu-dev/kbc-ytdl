@@ -1,15 +1,11 @@
 import { NextResponse } from "next/server";
 import {
     audioFormatSchema,
-    chooseDownloadFormat,
     downloadTypeSchema,
-    getFileExtension,
-    getYtdlOptions,
     normalizeYoutubeError,
-    toSafeFilename,
     youtubeUrlSchema,
-    ytdl,
 } from "@/lib/youtube";
+import { getYtDlpFilenameTitle, getYtDlpVideoInfo } from "@/lib/yt-dlp";
 
 export const runtime = "nodejs";
 
@@ -35,27 +31,25 @@ export async function POST(request: Request) {
     }
 
     try {
-        const info = await ytdl.getInfo(urlResult.data, getYtdlOptions());
-        const format = chooseDownloadFormat(info.formats, typeResult.data);
+        const info = await getYtDlpVideoInfo(urlResult.data, typeResult.data);
         const extension =
             typeResult.data === "audio"
                 ? audioFormatResult.data
-                : getFileExtension(format);
-        const details = info.videoDetails;
+                : info.ext || "mp4";
         const thumbnail =
-            details.thumbnails.at(-1)?.url || details.thumbnails[0]?.url || null;
+            info.thumbnails?.at(-1)?.url || info.thumbnail || null;
 
         return NextResponse.json({
-            title: details.title,
-            author: details.author.name,
-            lengthSeconds: Number(details.lengthSeconds || 0),
+            title: info.title || "YouTube video",
+            author: info.uploader || "",
+            lengthSeconds: Number(info.duration || 0),
             thumbnail,
             quality:
-                format.qualityLabel ||
-                (format.audioBitrate ? `${format.audioBitrate}kbps` : "best"),
-            mimeType: format.mimeType?.split(";")[0] || null,
+                info.format ||
+                (info.height ? `${info.height}p` : info.format_id || "best"),
+            mimeType: null,
             extension,
-            filename: `${toSafeFilename(details.title)}.${extension}`,
+            filename: `${getYtDlpFilenameTitle(info)}.${extension}`,
         });
     } catch (error) {
         return NextResponse.json(

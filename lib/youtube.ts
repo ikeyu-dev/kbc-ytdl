@@ -1,4 +1,6 @@
 import ytdl from "@distube/ytdl-core";
+import fs from "fs";
+import path from "path";
 import { z } from "zod";
 
 export const downloadTypeSchema = z.enum(["audio", "video"]);
@@ -16,12 +18,20 @@ export type DownloadType = z.infer<typeof downloadTypeSchema>;
 export type AudioFormat = z.infer<typeof audioFormatSchema>;
 
 function getConfiguredYoutubeCookies() {
-    const base64Cookies = process.env.YOUTUBE_COOKIES_BASE64?.trim();
-    if (base64Cookies) {
-        return Buffer.from(base64Cookies, "base64").toString("utf8").trim();
+    const cookies = process.env.YOUTUBE_COOKIES?.trim();
+    if (cookies) {
+        return cookies;
     }
 
-    return process.env.YOUTUBE_COOKIES?.trim() || "";
+    const localCookieFilePath = path.join(process.cwd(), "www.youtube.com_cookies.txt");
+    if (
+        process.env.NODE_ENV === "development" &&
+        fs.existsSync(localCookieFilePath)
+    ) {
+        return fs.readFileSync(localCookieFilePath, "utf8").trim();
+    }
+
+    return "";
 }
 
 function parseNetscapeCookieHeader(cookies: string) {
@@ -139,7 +149,7 @@ export function normalizeYoutubeError(error: unknown) {
         lowerMessage.includes("bot") ||
         lowerMessage.includes("login")
     ) {
-        return "YouTube からログイン確認または bot 確認を求められました。Vercel の YOUTUBE_COOKIES または YOUTUBE_COOKIES_BASE64 にブラウザの Cookie を設定してください。";
+        return "YouTube からログイン確認または bot 確認を求められました。ブラウザから取得した Cookie を www.youtube.com_cookies.txt に保存してください。";
     }
 
     if (

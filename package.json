@@ -4,6 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev --port 3010",
+    "tunnel": "cloudflared tunnel --url http://127.0.0.1:3010",
     "postinstall": "node scripts/install-yt-dlp.mjs && node scripts/install-deno.mjs",
     "build": "next build",
     "start": "next start",
